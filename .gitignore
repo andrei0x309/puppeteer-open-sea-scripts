@@ -1,0 +1,11 @@
+/.project
+/tmp/
+/node_modules/
+/.env
+/package-lock.json
+/ex1-blogpost.js
+/db.js
+/.yarn.lock
+/.project
+/.env.example
+/yarn.lock
