@@ -9,3 +9,4 @@
 /.project
 /.env.example
 /yarn.lock
+/logs
