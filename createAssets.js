@@ -2,14 +2,16 @@ import puppeteer from "puppeteer-extra";
 import os from "os";
 
 // this is just an array of your assets as objects
-import db from "./db.js";
+import db from "./data/yup_nft.js";
 
 import pluginStealth from "puppeteer-extra-plugin-stealth";
 
 puppeteer.use(pluginStealth());
 
 const openSeaPage = "https://opensea.io/asset/create";
-const NFTImageFolder = "K:\\dev\\projects\\js-ts\\dev-nft.flashsoft.eu\\public\\img\\nft-abstract-ai";
+const openSeaPageLogin = "https://opensea.io/login";
+// Change this to the path where the images are stored
+const NFTImageFolder = "K:\\dev\\projects\\node-scripts\\yup-discord-bot\\wip\\imgs";
 
 async function typeInInputElement(page, inputSelector, text) {
   await page.evaluate(
@@ -50,6 +52,9 @@ async function waitForSelectorElement(element, selector, timeout = 0) {
   } else if (osType === "Linux") {
     executablePath = "/usr/bin/microsoft-edge-dev";
     userDataDir = "~/.config/microsoft-edge-dev";
+  } else if ( osType === "Darwin") { // NEED to chenge paths to match the borwser you are using
+    executablePath = '/Volumes/Google Chrome Canary/Google Chrome Canary.app';
+    userDataDir = '/Users/noahsolnick/Library/Application Support/Google/Chrome Canary/Default';
   }
 
   //  userDataDir: './tmp/chrome'
@@ -63,7 +68,15 @@ async function waitForSelectorElement(element, selector, timeout = 0) {
   const browser = await puppeteer.launch(options);
   const page = await browser.newPage();
   page.setDefaultTimeout(0);
+  
+  // Await for login  
+  await page.goto(openSeaPageLogin);
+  await page.goto(openSeaPageLogin); // need to do this twice so the auth window opens (simulate some user activity)
+  const findMetamaskButton = await page.waitForSelector("main ul li button:nth-child(1)", {visible: true});
+  await findMetamaskButton.click();
+  await page.waitForNavigation();
 
+  console.log('assume logged in');
   await page.goto(openSeaPage);
 
   const dbContinue = db.slice(1);
@@ -73,7 +86,7 @@ async function waitForSelectorElement(element, selector, timeout = 0) {
     const uploadInputParent = await uploadInput.getProperty("parentNode");
 
     const [fileChooser] = await Promise.all([page.waitForFileChooser(), await uploadInputParent.click()]);
-    await fileChooser.accept([`${NFTImageFolder}\\${el.id}.jpeg`]);
+    await fileChooser.accept([`${NFTImageFolder}\\${el.id}.png`]);
 
     await typeInInputElement(page, "#name", el.title);
     await typeInInputElement(page, "#external_link", el.externalLink);
@@ -81,10 +94,15 @@ async function waitForSelectorElement(element, selector, timeout = 0) {
 
     const assetCollectionSelect = await page.waitForSelector('input[placeholder="Select collection"]');
     await assetCollectionSelect.type(el.collectionName, { delay: 0 });
+    
+    // Time for react to process the dropdown input
+    await page.waitForTimeout(1000);
 
     const collectionParentOfParrent = await (await (await assetCollectionSelect.getProperty("parentNode")).getProperty("parentNode")).asElement();
     const colSelectEl = await waitForSelectorElement(collectionParentOfParrent, "div + div + div");
     await colSelectEl.click();
+
+    break;
 
     const assetAddPropTrStBtns = await page.$$("div.AssetFormTraitSection--side button");
     await assetAddPropTrStBtns[0].click();
@@ -114,4 +132,5 @@ async function waitForSelectorElement(element, selector, timeout = 0) {
     await page.waitForNavigation();
     await page.goto(openSeaPage);
   }
+  console.log("done");
 })();
