@@ -3,11 +3,13 @@ import puppeteer from "puppeteer-extra";
 import os from "os";
 import path from 'path';
 import fs from 'fs';
-import chance from 'chance';
+import Chance from 'chance';
 import clipboard from 'clipboardy';
 
 // this is just an array of your assets as objects
-import db from "./db.js";
+//import db from "./db.js";
+
+const chance = new Chance();
 
 import pluginStealth from "puppeteer-extra-plugin-stealth";
 
@@ -150,7 +152,7 @@ const sendTwitterMsg = (dbObj, delayBetweenMsg) => {
     logger.warn(el[0] + ' twitter user not found');
   }else{
     // Need to wait a bit, otherwise react might not be ready to proces our click
-    await page.waitForTimeout(650);
+    await page.waitForTimeout(2650);
     await searchResult.click();
     let searchText = await page.evaluate(el => el.textContent, searchResult)
     if(searchText.includes('can’t be messaged')){
@@ -176,7 +178,7 @@ const sendTwitterMsg = (dbObj, delayBetweenMsg) => {
     await sendBtn.click();
     await page.waitForTimeout(150);
     logger.info(' sent message to ' + el[0]);
-    await page.waitForTimeout(delayBetweenMsg);
+    await page.waitForTimeout(chance.integer({min: 15, max: 35 }  * 1000));
   }
 }
 console.log('done');
@@ -895,4 +897,4 @@ const dbObj = [
   ]
 ]
 
-sendTwitterMsg(dbObj, 300);
+sendTwitterMsg(dbObj);
