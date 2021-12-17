@@ -172,13 +172,16 @@ const sendTwitterMsg = (dbObj, delayBetweenMsg) => {
     await msgBoxEl.focus();
     
     await page.keyboard.down('Control')
-    await page.keyboard.press('V')
+    await page.keyboard.press('keyV')
     await page.keyboard.up('Control')
+    await page.keyboard.down('Meta');
+    await page.keyboard.press('KeyV');
+    await page.keyboard.up('Meta');
     const sendBtn = await page.waitForSelector('div[aria-label="Send"]', {visible: true});
     await sendBtn.click();
     await page.waitForTimeout(150);
     logger.info(' sent message to ' + el[0]);
-    await page.waitForTimeout(chance.integer({min: 15, max: 35 }  * 1000));
+    await page.waitForTimeout(chance.integer({min: 15, max: 35 }) * 1000);
   }
 }
 console.log('done');
